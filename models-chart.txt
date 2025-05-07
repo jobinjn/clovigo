@@ -1,0 +1,204 @@
+title CloviGo
+
+// choices
+CUSTOMER_RANK_CHOICES[icon: more-horizontal, color: white]{
+  1 noob
+}
+
+SELLER_RANK_CHOICES[icon: more-horizontal, color: white]{
+  1 noob
+}
+
+DELIVERYBOY_RANK_CHOICES[icon: more-horizontal, color: white]{
+  1 noob
+}
+
+STATE_CHOICES[icon: more-horizontal, color: white]{
+  tn tamilnadu
+}
+
+DISTRICT_CHOICES[icon: more-horizontal, color: white]{
+  kk kanniyakumari
+}
+
+PRODUCTS_CHOICES[icon: more-horizontal, color: white]{
+  grocery Grocery
+}
+
+COLOR_CHOICES[icon: more-horizontal, color: white]{
+  red RED
+  yellow YELLOW
+}
+
+RATING_CHOICES[icon: more-horizontal, color: white]{
+  1 1
+  2 2
+  3 3
+  4 4
+  5 5
+}
+
+ORDER_STATUS_CHOICES[icon: more-horizontal, color: white]{
+  P pending
+  S shipped
+  O out_for_delivery
+  D delivered
+  C cancelled
+}
+
+
+// data models
+ImageModel[icon: file-contract, color: blue]{
+  img img
+  created_at date auto
+  updated_at date auto
+}
+
+FileModel[icon: file-contract, color: blue]{
+  file file
+  created_at date auto
+  updated_at date auto
+}
+
+ColorModel[icon: file-contract, color: blue]{
+  color <> COLOR_CHOICES
+  created_at date auto
+  updated_at date auto
+}
+
+
+// models
+UserManagementModel [icon: user, color: green]{
+  // Main user model
+  id int pk
+  username char unique
+  profile_pic fore null - ImageModel
+  first_name char
+  last_name char null
+  password pass
+  mobile_no char unique
+  email email null
+  is_active bool true
+  address_1 text null
+  address_2 text null
+  landmark text null
+  city text null
+  district <> DISTRICT_CHOICES
+  state <> STATE_CHOICES
+  pincode char null
+  date_joined date auto
+  last_login dte auto
+}
+
+CustomerModel[icon: user-check, color: orange]{
+  // customers
+  id int pk
+  user fore <> UserManagementModel
+  clo_coin int 0
+  customer_rank <> CUSTOMER_RANK_CHOICES
+  created_at date auto
+  updated_at date auto
+}
+
+SellerModel[icon: user-check, color: orange]{
+  // GST, PAN, ACCOUNT number are hashed
+  id int pk
+  user fore <> UserManagementModel
+  is_active bool false
+
+  shop_name char
+  shop_address_1 char
+  shop_address_2 char
+  shop_landmark char
+
+  GST_no char unique
+  GST_expiry_date date
+  PAN_no char unique null
+  account_no char unique null
+
+  file_gst null - FileModel
+  file_pan null - FileModel
+
+  clo_coin int 0
+  seller_rank choice <> SELLER_RANK_CHOICES
+  created_at date auto
+  updated_at date auto
+}
+
+DeliveryBoyModel[icon: user-check, color: orange]{
+  // license number is hashed
+  id int pk
+  user fore <> UserManagementModel
+  is_active bool false
+
+  license_no char unique
+
+  file_license - FileModel
+
+  clo_coin int 0
+  Delivery_boy_rank choice <> DELIVERYBOY_RANK_CHOICES
+  created_at date auto
+  updated_at date auto
+}
+
+ProductModel[icon: shopping-bag, color: yellow]{
+  // trend_order higher the number higher the product trend increasing
+  seller > SellerModel
+  product_name char
+  description char
+  product_category <> PRODUCTS_CHOICES
+  color_available - ColorModel
+  color <> COLOR_CHOICES
+  trend_order int 
+  actual_price int
+  discount_price int
+  stocks int
+  image < ImageModel
+  discount_percentage int 0
+  is_return_policy bool false
+  return_before char
+  delivered_within char
+  created_at date auto
+  updated_at date auto
+}
+
+ReviewModel[icon: message-square, color: yellow]{
+  product > ProductModel
+  review text
+  rating <> RATING_CHOICES
+  customer - CustomerModel
+  created_at date auto
+  updated_at date auto
+}
+
+CartModel[icon: shopping-cart, color: red]{
+  product > ProductModel
+  customer > CustomerModel
+  quantity int
+  created_at date auto
+  updated_at date auto
+}
+
+FavoriteModel[icon: heart, color: red]{
+  product > ProductModel
+  customer > CustomerModel
+  created_at date auto
+  updated_at date auto
+}
+
+OrderModel[icon: truck, color: purple]{
+  product > ProductModel
+  customer > CustomerModel
+  quantity int
+  order_status <> ORDER_STATUS_CHOICES
+  created_at date auto
+  updated_at date auto
+}
+
+LatestDealModel[icon: fire, color: red]{
+  image - ImageModel
+  product null > ProductModel
+  page slug null 
+  created_at date auto
+  updated_at date auto 
+}
