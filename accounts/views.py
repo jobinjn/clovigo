@@ -29,6 +29,7 @@ from accounts.models import (CustomerModel,
                              SellerModel,
                              DeliveryBoyModel)
 from accounts.utils import send_otp
+from rest_framework.authentication import SessionAuthentication
 
 from core.serializers import ErrorResponseSerializer
 
@@ -364,29 +365,63 @@ class LoginUserView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class ApproveDeliveryBoyView(APIView):
+    authentication_classes = [JWTAuthentication, SessionAuthentication]
     permission_classes = [IsAdminUser]
 
     def post(self, request, delivery_boy_id):
+        print("User:", request.user)
+        print("Is Authenticated:", request.user.is_authenticated)
+        print("Is Staff:", request.user.is_staff)
+        print("Is Superuser:", request.user.is_superuser)
+
+        action = request.data.get("action")
+
         try:
             delivery_boy = DeliveryBoyModel.objects.get(id=delivery_boy_id)
-            delivery_boy.is_active = True
-            delivery_boy.save()
-            return Response({"message": "Delivery boy approved (activated) successfully."}, status=status.HTTP_200_OK)
         except DeliveryBoyModel.DoesNotExist:
             return Response({"error": "Delivery boy not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        if action == "activate":
+            delivery_boy.is_active = True
+            message = "Delivery boy approved (activated) successfully."
+        elif action == "deactivate":
+            delivery_boy.is_active = False
+            message = "Delivery boy deactivated successfully."
+        else:
+            return Response({"error": "Invalid action. Use 'activate' or 'deactivate'."}, status=status.HTTP_400_BAD_REQUEST)
+
+        delivery_boy.save()
+        return Response({"message": message}, status=status.HTTP_200_OK)
+
+
 class ApproveSellerView(APIView):
-    permission_classes = [IsAdminUser]  
+    authentication_classes = [JWTAuthentication, SessionAuthentication]
+    permission_classes = [IsAdminUser]
 
     def post(self, request, seller_id):
+        print("User:", request.user)
+        print("Is Authenticated:", request.user.is_authenticated)
+        print("Is Staff:", request.user.is_staff)
+        print("Is Superuser:", request.user.is_superuser)
+
+        action = request.data.get("action")
+
         try:
             seller = SellerModel.objects.get(id=seller_id)
-            seller.is_active = True
-            seller.save()
-            return Response({"message": "Seller approved (activated) successfully."}, status=status.HTTP_200_OK)
         except SellerModel.DoesNotExist:
-            return Response({"error": "Seller not found."}, status=status.HTTP_404_NOT_FOUND)   
+            return Response({"error": "Seller not found."}, status=status.HTTP_404_NOT_FOUND)
 
+        if action == "activate":
+            seller.is_active = True
+            message = "Seller approved (activated) successfully."
+        elif action == "deactivate":
+            seller.is_active = False
+            message = "Seller deactivated successfully."
+        else:
+            return Response({"error": "Invalid action. Use 'activate' or 'deactivate'."}, status=status.HTTP_400_BAD_REQUEST)
+
+        seller.save()
+        return Response({"message": message}, status=status.HTTP_200_OK)
 
 # class UserProfileView(RetrieveUpdateAPIView):
 #     serializer_class = UserProfileSerializer
@@ -484,35 +519,48 @@ class AdminProductDashboardAPI(APIView):
             "reviews": ReviewSerializer(reviews, many=True).data,
         })
     
+
 class AdminLoginAPIView(APIView):
-    """Class-based view for admin login without token authentication."""
+    """
+    Class-based view for admin login that returns JWT refresh and access tokens.
+    Automatically sets is_staff=True if the user is a superuser.
+    """
 
     def post(self, request, *args, **kwargs):
-        """Handle POST request for admin login."""
         username = request.data.get('username')
         password = request.data.get('password')
 
-        # Check if username and password are provided
         if not username or not password:
             return Response(
                 {"error": "Username and password are required"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Authenticate the user (without token-based auth)
         user = authenticate(username=username, password=password)
 
-        # Check if user exists and if they are an admin (is_staff=True)
-        if user is not None and user.is_superuser:
-            return Response(
-                {
-                    "message": "Admin login successful",
-                    "user": user.username
-                },
-                status=status.HTTP_200_OK
-            )
-        else:
+        if user is None or not user.is_superuser:
             return Response(
                 {"error": "Invalid credentials or you are not an admin"},
                 status=status.HTTP_401_UNAUTHORIZED
-            )    
+            )
+
+        # Ensure is_staff is True for superusers
+        if not user.is_staff:
+            user.is_staff = True
+            user.save()
+
+        # Generate JWT tokens
+        refresh = RefreshToken.for_user(user)
+        access = refresh.access_token
+
+        return Response(
+            {
+                "message": "Admin login successful",
+                "user": user.username,
+                "tokens": {
+                    "refresh": str(refresh),
+                    "access": str(access),
+                }
+            },
+            status=status.HTTP_200_OK
+        )

@@ -1,3 +1,4 @@
+from rest_framework.decorators import action
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -10,7 +11,9 @@ from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import ImageModel
 from .serializers import ImageSerializer
-
+from django.utils.text import slugify
+from .models import ColorModel
+from .serializers import ColorSerializer
 class CatalogHomeView(APIView):
     """
     API endpoint to provide the catalog details.
@@ -61,3 +64,30 @@ class ImageViewSet(viewsets.ModelViewSet):
     queryset = ImageModel.objects.all()
     serializer_class = ImageSerializer
     parser_classes = [MultiPartParser, FormParser] 
+
+
+class ColorViewSet(viewsets.ModelViewSet):
+    queryset = ColorModel.objects.all()
+    serializer_class = ColorSerializer
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        instance.slug = slugify(instance.color)
+        instance.save()
+
+    def get_queryset(self):
+        queryset = ColorModel.objects.all()
+        color = self.request.query_params.get('color')
+        is_active = self.request.query_params.get('is_active')
+
+        if color:
+            queryset = queryset.filter(color__icontains=color)
+        if is_active is not None:
+            queryset = queryset.filter(is_active=is_active.lower() == 'true')
+        return queryset.order_by('color')
+
+    @action(detail=True, methods=['post'])
+    def deactivate(self, request, pk=None):
+        color = self.get_object()
+        color.deactivate()
+        return Response({'status': f'Color "{color.color}" deactivated.'})

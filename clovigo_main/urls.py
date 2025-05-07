@@ -3,16 +3,17 @@ from django.urls import include, path
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, SpectacularSwaggerView
 from rest_framework.routers import DefaultRouter
-from core.views import ImageViewSet
+from core.views import ImageViewSet, ColorViewSet
 
 router = DefaultRouter()
 router.register(r'images', ImageViewSet)
+router.register(r'colors', ColorViewSet, basename='color')
 
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
+
     path('', include("core.urls")), 
     path('api/accounts/', include("accounts.urls")),
     path('carts/', include("cart.urls")),

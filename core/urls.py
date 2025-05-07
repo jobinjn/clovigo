@@ -7,6 +7,7 @@ from django.conf.urls.static import static
 app_name = "catalog"
 
 urlpatterns = [
+
     path('', CatalogHomeView.as_view(), name='catalog'),
 ]
 
