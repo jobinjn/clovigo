@@ -1,0 +1,106 @@
+1.divisible by 5 and 8
+list=[]
+a=int(input("where to be start  "))
+b=int(input("where to be end  "))
+for i in range(a,b):
+    if i%5==0 and i%8==0:
+        list.append(i)
+print(list)
+
+2.tables(from 1 to 10)
+c=0
+a=int(input("enter the number : "))
+b=int(input("enter the table : "))
+for i in range(1,a+1):
+    c=c+b
+    print(a,"x",b,"=",c)
+	
+3.ascending order
+a=[1,5,8,2,5,9,0,3]
+a.sort()
+b=a[:1]
+print(a)
+print(b)
+
+4.secon largest number in list
+list=[]
+a=int(input("enter the numbers: "))
+for i in range(a):
+    add=int(input("enter the numbers to be added : "))
+    list.append(add)
+    list.sort()
+print(list)
+b=list.pop(-2) 
+print(f"the second largest value is {b}")
+
+5.odd and even
+l = []
+n=[]
+a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+for i in (a[0:11]):
+ if i%2 == 0:
+    l.append(i)
+ elif i!=0:
+     n.append(i)
+print(n)
+print(l)
+
+6.reverse
+list=[]
+a=int(input("enter the numbers: "))
+for i in range(a):
+    add=int(input("enter the numbers to be added : "))
+    list.append(add)
+
+print(list[::-1])
+
+7.print odd numbers in list
+
+list=[]
+c=[]
+a=int(input("enter the numbers: "))
+for i in range(1,a+1):
+ list.append(i)
+for i in (list[0:a]):
+  if i%2!=0:
+   c.append(i)
+print(list)
+print(f"the odd number is{c}")
+
+8.even and odd count
+
+l = []
+list=[]
+n=[]
+g=0
+f=0
+a = int(input("enter the list "))
+for i in range(1,a+1):
+  list.append(i)
+print(list)
+for i in (list[0:a]):
+ if i%2 == 0:
+    l.append(i)
+    g=len(l)
+ elif i!=0:
+    n.append(i)
+    f=len(n)
+print(g)
+print(f)
+
+11.marks
+
+a=int(input("enter the mark : "))
+for i in range(a):
+ if a>90:
+  print("A")
+  break
+ elif a>80 and a<=90:
+  print("B")
+  break
+ elif a>60 and a<=80:
+  print("c")
+  break
+ elif a<=60:
+  print("e")
+  break

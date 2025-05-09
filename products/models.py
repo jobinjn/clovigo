@@ -54,13 +54,4 @@ class ReviewModel(models.Model):
         discounted_price = self.actual_price * (Decimal('1.0') - discount_rate)
         return round(discounted_price, 2)
 
-class ReviewModel(models.Model):
-    product = models.ForeignKey(ProductModel, on_delete=models.CASCADE)
-    review = models.TextField()
-    rating = models.CharField(max_length=10, choices=RATING_CHOICES)
-    customer = models.ForeignKey(CustomerModel, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    def __str__(self):
-        return f"{self.customer} - {self.product} ({self.rating})"
 

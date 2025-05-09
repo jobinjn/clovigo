@@ -6,7 +6,7 @@ from products.models import ProductModel
 
 
 class OrderModel(models.Model):
-    product = models.JSONField(default=dict)
+    product = models.ForeignKey(ProductModel, on_delete=models.CASCADE)
     customer = models.ForeignKey(CustomerModel, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField()
     order_status = models.CharField(max_length=10, choices=ORDER_STATUS_CHOICES)

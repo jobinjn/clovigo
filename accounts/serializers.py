@@ -318,3 +318,19 @@ class OrderSerializer(serializers.ModelSerializer):
         model = OrderModel
         fields = ['id', 'customer_name', 'product_details', 'quantity', 'order_status', 'total_price', 'created_at',
                   'updated_at']
+
+class OrderProductSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    product_name = serializers.CharField()
+    actual_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+    discount_price = serializers.DecimalField(max_digits=10, decimal_places=2)
+
+class AdminOrderSerializer(serializers.ModelSerializer):
+    product = OrderProductSerializer()
+
+    class Meta:
+        model = OrderModel
+        fields = ['id', 'product', 'quantity', 'order_status', 'total_price', 'created_at']
+
+class SellerForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
