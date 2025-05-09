@@ -9,10 +9,10 @@ from drf_spectacular.utils import (extend_schema,
                                    OpenApiResponse)
 from rest_framework import viewsets
 from rest_framework.parsers import MultiPartParser, FormParser
-from .models import ImageModel
+from .models import ImageModel, ColorModel
 from .serializers import ImageSerializer
 from django.utils.text import slugify
-from .models import ColorModel
+
 from .serializers import ColorSerializer
 class CatalogHomeView(APIView):
     """
@@ -91,3 +91,4 @@ class ColorViewSet(viewsets.ModelViewSet):
         color = self.get_object()
         color.deactivate()
         return Response({'status': f'Color "{color.color}" deactivated.'})
+

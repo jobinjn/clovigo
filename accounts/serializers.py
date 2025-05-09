@@ -12,6 +12,7 @@ from products.models import ProductModel, ReviewModel
 from accounts.utils import (send_otp,
                             generate_first_otp,
                             create_otp_model_first)
+from orders.models import OrderModel
 from accounts.models import UserManagementModel
 from django.utils import timezone
 from django.contrib.auth import get_user_model
@@ -291,6 +292,8 @@ class DeliveryBoySerializer(serializers.ModelSerializer):
         model = DeliveryBoyModel
         fields = '__all__'
 
+
+
 class ProductSerializer(serializers.ModelSerializer):
     calculated_discount_price = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
 
@@ -306,3 +309,12 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReviewModel
         fields = '__all__'
+
+class OrderSerializer(serializers.ModelSerializer):
+    customer_name = serializers.CharField(source='customer.user.first_name', read_only=True)
+    product_details = serializers.CharField(source='product', read_only=True)
+
+    class Meta:
+        model = OrderModel
+        fields = ['id', 'customer_name', 'product_details', 'quantity', 'order_status', 'total_price', 'created_at',
+                  'updated_at']

@@ -30,17 +30,15 @@ from accounts.models import (CustomerModel,
                              DeliveryBoyModel)
 from accounts.utils import send_otp
 from rest_framework.authentication import SessionAuthentication
-
 from core.serializers import ErrorResponseSerializer
-
 from django.utils import timezone
 from django.contrib.auth import authenticate
-
 from clovigo_main.settings import OTP_MAX_TRY
-
 import random
-from datetime import timedelta
+from orders.models import OrderModel
+from orders.serializers import OrderSerializer
 
+from datetime import timedelta
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiParameter,
                                    OpenApiExample,
@@ -63,6 +61,7 @@ from .serializers import UserProfileSerializer, CustomerSerializer, SellerSerial
     },
     tags=["Account Creation"]
 )
+
 class CustomerSignUpView(CreateAPIView):
     """
     Requires username, password, phone number to create a customer account as inactive.
@@ -75,25 +74,18 @@ class CustomerSignUpView(CreateAPIView):
 @extend_schema(
     summary="Register a New Seller",
     description="Creates a new Seller account. The account will be inactive until verified.",
-    request=CustomerSignUpSerializer,
+    request=SellerSignUpSerializer,  # Corrected to use SellerSignUpSerializer
     responses={
         201: OpenApiResponse(
             response=SellerSignUpSerializer,
-            description="Seller registered verify OTP.",
+            description="Seller registered. OTP required for verification.",
         )
     },
     tags=["Account Creation"]
 )
-# class SellerSignUpView(CreateAPIView):
-#     """
-#     Requires username, password, phone number to create a seller account as inactive.
-#     Use validated password and phonenumber.
-#     """
-#     serializer_class = SellerSignUpSerializer
 class SellerSignUpView(CreateAPIView):
     queryset = SellerModel.objects.all()
-    serializer_class = SellerSignUpSerializer    
-
+    serializer_class = SellerSignUpSerializer
 
 @extend_schema(
     summary="Register a new Delivery Boy",
@@ -394,6 +386,17 @@ class ApproveDeliveryBoyView(APIView):
         return Response({"message": message}, status=status.HTTP_200_OK)
 
 
+class DeliveryBoyChoicesView(APIView):
+    def get(self, request):
+        district_choices = [{'value': val, 'label': label} for val, label in UserManagementModel._meta.get_field('district').choices]
+        state_choices = [{'value': val, 'label': label} for val, label in UserManagementModel._meta.get_field('state').choices]
+        rank_choices = [{'value': val, 'label': label} for val, label in DeliveryBoyModel._meta.get_field('delivery_boy_rank').choices]
+        return Response({
+            'districts': district_choices,
+            'states': state_choices,
+            'ranks': rank_choices
+        })
+
 class ApproveSellerView(APIView):
     authentication_classes = [JWTAuthentication, SessionAuthentication]
     permission_classes = [IsAdminUser]
@@ -508,17 +511,30 @@ class DeliveryBoyListAPI(APIView):
         return Response({
             "delivery_boys": DeliveryBoySerializer(delivery_boys, many=True).data
         })
-    
+
 class AdminProductDashboardAPI(APIView):
     def get(self, request):
-        products = ProductModel.objects.select_related('seller').all()
-        reviews = ReviewModel.objects.select_related('product', 'customer').all()
-        
-        return Response({
-            "products": ProductSerializer(products, many=True).data,
-            "reviews": ReviewSerializer(reviews, many=True).data,
-        })
-    
+        try:
+            # Attempt to fetch products and reviews with related data
+            products = ProductModel.objects.select_related('seller').all()
+            reviews = ReviewModel.objects.select_related('product', 'customer').all()
+
+            # If data is fetched correctly, serialize and return the response
+            product_data = ProductSerializer(products, many=True).data
+            review_data = ReviewSerializer(reviews, many=True).data
+
+            return Response({
+                "products": product_data,
+                "reviews": review_data
+            }, status=status.HTTP_200_OK)
+
+        except ProductModel.DoesNotExist:
+            return Response({"error": "No products found."}, status=status.HTTP_404_NOT_FOUND)
+        except ReviewModel.DoesNotExist:
+            return Response({"error": "No reviews found."}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            # Catch any other exceptions and log the error message for debugging
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class AdminLoginAPIView(APIView):
     """
@@ -564,3 +580,12 @@ class AdminLoginAPIView(APIView):
             },
             status=status.HTTP_200_OK
         )
+
+class AdminOrderDashboardAPI(APIView):
+    """admin canfetch the orders in the admin dashboard"""
+    def get(self, request):
+        orders = OrderModel.objects.all()  # Fetch all orders or you can filter based on some criteria
+        order_data = OrderSerializer(orders, many=True).data
+        return Response({
+            "orders": order_data
+        })

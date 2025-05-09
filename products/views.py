@@ -31,6 +31,10 @@ class ProductCreate(CreateAPIView):
 
         serializer.save(seller=seller)
 
+class ProductListAPIView(ListAPIView):
+    queryset = ProductModel.objects.select_related('seller', 'color_available').order_by('-created_at')
+    serializer_class = ProductSerializer
+
 
 class ProductGetView(ListAPIView):
     serializer_class = ProductSerializer
