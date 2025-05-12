@@ -1,15 +1,13 @@
 from rest_framework.generics import CreateAPIView, ListAPIView, RetrieveAPIView,UpdateAPIView
 from rest_framework.response import Response
-from rest_framework import  permissions
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.exceptions import PermissionDenied
 from accounts.models import SellerModel
 from products.models import ProductModel,ReviewModel,CustomerModel
 from products.serializers import ProductSerializer,ReviewSerializer
 from rest_framework.exceptions import NotFound
-
+from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
 from .models import ProductModel  # or your actual Product model
@@ -128,4 +126,77 @@ class UpdateReviewAPIView(UpdateAPIView):
             raise PermissionDenied("No customer account found for this user.")
         except Exception:
             raise PermissionDenied("Invalid or expired token.")
-   
+
+# class ProductSearchView(APIView):
+#     """
+#     GET /api/customer/products/search/?q=...
+#     Authenticated customers only.
+#     Matches product.id, product_name, or product_category (both CharFields)
+#     """
+#     permission_classes = [IsAuthenticated]
+#
+#     def get(self, request):
+#         q = request.query_params.get('q', '').strip()
+#         if not q:
+#             return Response({"error": "Query parameter 'q' is required."},
+#                             status=status.HTTP_400_BAD_REQUEST)
+#
+#         # Ensure requester is a customer
+#         try:
+#             CustomerModel.objects.get(user=request.user)
+#         except CustomerModel.DoesNotExist:
+#             return Response({"error": "Only customers can search products."},
+#                             status=status.HTTP_403_FORBIDDEN)
+#
+#         # Build filter: match by name, category or id (if numeric)
+#         filters = Q(product_name__icontains=q) | Q(product_category__icontains=q)
+#         if q.isdigit():
+#             filters |= Q(id=int(q))
+#
+#         qs = ProductModel.objects.filter(filters)[:20]
+#
+#         results = [
+#             {
+#                 "id": p.id,
+#                 "name": p.product_name,
+#                 "category": p.product_category,
+#                 "price": float(p.price),  # Adjust field name if different
+#                 "thumbnail": p.image.url if hasattr(p, 'image') and p.image else None
+#             }
+#             for p in qs
+#         ]
+#
+#         return Response({"results": results})
+class ProductSearchView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        q = request.query_params.get('q', '').strip()
+        if not q:
+            return Response({"error": "Query parameter 'q' is required."},
+                             status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            CustomerModel.objects.get(user=request.user)
+        except CustomerModel.DoesNotExist:
+            return Response({"error": "Only customers can search products."},
+                             status=status.HTTP_403_FORBIDDEN)
+
+        filters = Q(product_name__icontains=q) | Q(product_category__icontains=q)
+        if q.isdigit():
+            filters |= Q(id=int(q))
+
+        qs = ProductModel.objects.filter(filters)[:20]
+
+        results = [
+            {
+                "id": p.id,
+                "name": p.product_name,
+                "category": p.product_category,
+                "price": float(p.discount_price),
+                "thumbnail": p.image_id.url if p.image_id else None
+            }
+            for p in qs
+        ]
+
+        return Response({"results": results})

@@ -39,7 +39,7 @@ from clovigo_main.settings import OTP_MAX_TRY
 import random
 from orders.models import OrderModel
 from orders.serializers import OrderSerializer
-
+from accounts.utils import send_otp_email
 from datetime import timedelta
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiParameter,
@@ -304,7 +304,7 @@ class LoginUserView(APIView):
         serializer = LoginSerializer(data=request.data)
 
         if serializer.is_valid():
-            username = serializer.validated_data["username"].lower()
+            username = serializer.validated_data["username"]
             password = serializer.validated_data["password"]
 
             user = authenticate(username=username, password=password)
@@ -609,68 +609,58 @@ class AdminCustomerOrderedProductsView(generics.ListAPIView):
 def generate_otp():
     return ''.join([str(random.randint(0, 9)) for _ in range(6)])
 
-
 class SellerForgotPasswordView(APIView):
     def post(self, request):
         email = request.data.get("email")
-        seller = SellerModel.objects.filter(email=email).first()
+        try:
+            user = UserManagementModel.objects.get(email=email)
+            seller = SellerModel.objects.get(user=user)
+        except (UserManagementModel.DoesNotExist, SellerModel.DoesNotExist):
+            return Response({"error": "Seller email not found."}, status=404)
 
-        if seller:
-            otp = generate_otp()
-            request.session["seller_otp"] = otp
-            request.session["seller_email"] = email
+        otp = generate_otp()
+        request.session["seller_otp"] = otp
+        request.session["seller_email"] = email
+        send_otp_email("seller", email, otp)
 
-            send_mail(
-                "Seller Password Reset OTP",
-                f"Your OTP is {otp}",
-                "no-reply@clovigo.com",
-                [email],
-                fail_silently=False,
-            )
-            return Response({"message": "OTP sent to your seller email."})
-        return Response({"error": "Seller email not found."}, status=404)
+        return Response({"message": "OTP sent to your seller email."})
 
 
 class CustomerForgotPasswordView(APIView):
     def post(self, request):
         email = request.data.get("email")
-        customer = CustomerModel.objects.filter(email=email).first()
+        try:
+            user = UserManagementModel.objects.get(email=email)
+            customer = CustomerModel.objects.get(user=user)
+        except (UserManagementModel.DoesNotExist, CustomerModel.DoesNotExist):
+            return Response({"error": "Customer email not found."}, status=404)
 
-        if customer:
-            otp = generate_otp()
-            request.session["customer_otp"] = otp
-            request.session["customer_email"] = email
+        otp = generate_otp()
+        request.session["customer_otp"] = otp
+        request.session["customer_email"] = email
+        send_otp_email("customer", email, otp)
 
-            send_mail(
-                "Customer Password Reset OTP",
-                f"Your OTP is {otp}",
-                "no-reply@clovigo.com",
-                [email],
-                fail_silently=False,
-            )
-            return Response({"message": "OTP sent to your customer email."})
-        return Response({"error": "Customer email not found."}, status=404)
+        return Response({"message": "OTP sent to your customer email."})
 
 
 class DeliveryBoyForgotPasswordView(APIView):
     def post(self, request):
         email = request.data.get("email")
-        delivery_boy = DeliveryBoyModel.objects.filter(email=email).first()
+        try:
+            user = UserManagementModel.objects.get(email=email)
+            delivery_boy = DeliveryBoyModel.objects.get(user=user)
+        except (UserManagementModel.DoesNotExist, DeliveryBoyModel.DoesNotExist):
+            return Response({"error": "Delivery Boy email not found."}, status=404)
 
-        if delivery_boy:
-            otp = generate_otp()
-            request.session["delivery_otp"] = otp
-            request.session["delivery_email"] = email
+        otp = generate_otp()
+        request.session["deliveryboy_otp"] = otp
+        request.session["deliveryboy_email"] = email
+        send_otp_email("deliveryboy", email, otp)
 
-            send_mail(
-                "DeliveryBoy Password Reset OTP",
-                f"Your OTP is {otp}",
-                "no-reply@clovigo.com",
-                [email],
-                fail_silently=False,
-            )
-            return Response({"message": "OTP sent to your delivery email."})
-        return Response({"error": "Delivery email not found."}, status=404)
+        return Response({"message": "OTP sent to your delivery boy email."})
+
+
+
 
 class SellerVerifyOTPView(APIView):
     def post(self, request):
@@ -701,68 +691,116 @@ class DeliveryBoyVerifyOTPView(APIView):
             return Response({"message": "OTP verified. You can now reset your password."})
         return Response({"error": "Invalid OTP"}, status=400)
 
-class SellerChangePasswordView(APIView):
-    def post(self, request):
-        password = request.data.get("password")
-        confirm_password = request.data.get("confirm_password")
-        email = request.session.get("seller_email")
-
-        if password != confirm_password:
-            return Response({"error": "Passwords do not match"}, status=400)
-
-        seller = SellerModel.objects.filter(email=email).first()
-        if not seller:
-            return Response({"error": "Seller not found"}, status=404)
-
-        seller.user.password = make_password(password)
-        seller.user.save()
-
-        # Cleanup session
-        request.session.pop("seller_email", None)
-        request.session.pop("seller_otp", None)
-
-        return Response({"message": "Seller password changed successfully"})
-
 
 class CustomerChangePasswordView(APIView):
     def post(self, request):
-        password = request.data.get("password")
+        # 1) Get payload
+        otp_submitted    = request.data.get("otp")
+        password         = request.data.get("password")
         confirm_password = request.data.get("confirm_password")
+
+        # 2) Retrieve stored session values
         email = request.session.get("customer_email")
+        otp_stored = request.session.get("customer_otp")
+
+        # 3) Basic validations
+        if not email or not otp_stored:
+            return Response({"error": "No reset request found. Please request a new OTP."}, status=400)
+
+        if otp_submitted != otp_stored:
+            return Response({"error": "Invalid OTP."}, status=400)
+
+        if not password or not confirm_password:
+            return Response({"error": "Both password fields are required."}, status=400)
 
         if password != confirm_password:
-            return Response({"error": "Passwords do not match"}, status=400)
+            return Response({"error": "Passwords do not match."}, status=400)
 
-        customer = CustomerModel.objects.filter(email=email).first()
-        if not customer:
-            return Response({"error": "Customer not found"}, status=404)
+        # 4) Lookup the customer via the related user email
+        try:
+            user = UserManagementModel.objects.get(email=email)
+            customer = CustomerModel.objects.get(user=user)
+        except (UserManagementModel.DoesNotExist, CustomerModel.DoesNotExist):
+            return Response({"error": "Customer not found."}, status=404)
 
-        customer.user.password = make_password(password)
-        customer.user.save()
+        # 5) Save the new password
+        user.password = make_password(password)
+        user.save()
 
+        # 6) Cleanup the session keys
         request.session.pop("customer_email", None)
         request.session.pop("customer_otp", None)
 
-        return Response({"message": "Customer password changed successfully"})
+        return Response({"message": "Customer password changed successfully."})
+
+
+class SellerChangePasswordView(APIView):
+    def post(self, request):
+        otp_submitted    = request.data.get("otp")
+        password         = request.data.get("password")
+        confirm_password = request.data.get("confirm_password")
+
+        email      = request.session.get("seller_email")
+        otp_stored = request.session.get("seller_otp")
+
+        if not email or not otp_stored:
+            return Response({"error": "No reset request found. Please request a new OTP."}, status=400)
+
+        if otp_submitted != otp_stored:
+            return Response({"error": "Invalid OTP."}, status=400)
+
+        if not password or not confirm_password:
+            return Response({"error": "Both password fields are required."}, status=400)
+
+        if password != confirm_password:
+            return Response({"error": "Passwords do not match."}, status=400)
+
+        try:
+            user   = UserManagementModel.objects.get(email=email)
+            seller = SellerModel.objects.get(user=user)
+        except (UserManagementModel.DoesNotExist, SellerModel.DoesNotExist):
+            return Response({"error": "Seller not found."}, status=404)
+
+        user.password = make_password(password)
+        user.save()
+
+        request.session.pop("seller_email", None)
+        request.session.pop("seller_otp", None)
+
+        return Response({"message": "Seller password changed successfully."})
 
 
 class DeliveryBoyChangePasswordView(APIView):
     def post(self, request):
-        password = request.data.get("password")
+        otp_submitted    = request.data.get("otp")
+        password         = request.data.get("password")
         confirm_password = request.data.get("confirm_password")
-        email = request.session.get("delivery_email")
+
+        email      = request.session.get("deliveryboy_email")
+        otp_stored = request.session.get("deliveryboy_otp")
+
+        if not email or not otp_stored:
+            return Response({"error": "No reset request found. Please request a new OTP."}, status=400)
+
+        if otp_submitted != otp_stored:
+            return Response({"error": "Invalid OTP."}, status=400)
+
+        if not password or not confirm_password:
+            return Response({"error": "Both password fields are required."}, status=400)
 
         if password != confirm_password:
-            return Response({"error": "Passwords do not match"}, status=400)
+            return Response({"error": "Passwords do not match."}, status=400)
 
-        delivery_boy = DeliveryBoyModel.objects.filter(email=email).first()
-        if not delivery_boy:
-            return Response({"error": "Delivery Boy not found"}, status=404)
+        try:
+            user         = UserManagementModel.objects.get(email=email)
+            delivery_boy = DeliveryBoyModel.objects.get(user=user)
+        except (UserManagementModel.DoesNotExist, DeliveryBoyModel.DoesNotExist):
+            return Response({"error": "Delivery Boy not found."}, status=404)
 
-        delivery_boy.user.password = make_password(password)
-        delivery_boy.user.save()
+        user.password = make_password(password)
+        user.save()
 
-        request.session.pop("delivery_email", None)
-        request.session.pop("delivery_otp", None)
+        request.session.pop("deliveryboy_email", None)
+        request.session.pop("deliveryboy_otp", None)
 
-        return Response({"message": "Delivery password changed successfully"})
+        return Response({"message": "Delivery Boy password changed successfully."})

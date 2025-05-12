@@ -1,0 +1,525 @@
+{% include "admin_header.html" %}
+{% load static %}
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="//code.jquery.com/jquery-1.11.1.min.js"></script>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+
+<!-- end app-header -->
+            <!-- begin app-container -->
+            <div class="app-container">
+               
+
+                {% include "admin_navbar.html" %}
+
+                
+                <!-- begin app-main -->
+                <div class="app-main" id="main">
+                    <!-- begin container-fluid -->
+                    <div class="container-fluid">
+                        <!-- begin row -->
+                        <div class="row">
+                            <div class="col-md-12 m-b-30">
+                                <!-- begin page title -->
+                                <div class="d-block d-sm-flex flex-nowrap align-items-center">
+                                    <div class="page-title mb-2 mb-sm-0">
+                                        <h1>Add Cars</h1>
+                                    </div>
+                                    <div class="ml-auto d-flex align-items-center">
+                                        <nav>
+                                            <ol class="breadcrumb p-0 m-b-0">
+                                                <li class="breadcrumb-item">
+                                                    <a href="/marriya_admin/index/"><i class="ti ti-home"></i></a>
+                                                </li>
+                                               
+                                                <li class="breadcrumb-item active text-primary" aria-current="page">
+                                                    Add Cars</li>
+                                            </ol>
+                                        </nav>
+                                    </div>
+                                </div><br>
+                                                        <!-- start Validation row -->
+                        <div class="row ">
+                            <div class="col-xl-12">
+                                <div class="card card-statistics">
+                                    
+                                    <div class="card-body">
+                                        <form id="" method="POST" class="form-horizontal">
+                                            {% csrf_token %}
+                                            <div class="form-group">
+                                                <label class="control-label" for="fname">Car Brand</label>
+                                                <div class="mb-2">
+                                                    <input type="text" class="form-control" value="{{edit.car_brand}}" id="fname" name="car_brand" placeholder="Car Brand" required/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label" for="fname">Car Model</label>
+                                                <div class="mb-2">
+                                                    <input type="text" class="form-control" value="{{edit.car_model}}" id="fname" name="car_model" placeholder="Car Model" required/>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="form-group">
+                                                <label class="control-label" for="lname">Model Year</label>
+                                                <div class="mb-2">
+                                                    <input type="date" class="form-control" value="{{edit.model_year}}" id="" name="model_year" placeholder="Year" required/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label" for="uname">Fuel Type</label>
+                                                <div class="mb-2">
+                                                    <select class="js-basic-single form-control" name="fuel_type" required>
+                                                        {% if edit == "" %}
+
+                                                        <option value="">Select Any One</option>
+                                                        {% else %}
+                                                        <option value="{{edit.fuel_type}}">{{edit.fuel_type}}</option>
+                                                        {% endif %}
+                                                            <option value="Diesel">Diesel</option>
+                                                            <option value="Petrol">Petrol</option>
+                                                            <option value="Electric">Electric</option>
+                                                            <option value="Lpg">Lpg</option>
+                                                            <option value="Cnc & Hybrids">Cnc & Hybrids</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label" for="uemail">Transmission</label>
+                                                <div class="mb-2">
+                                                    <select class="js-basic-single form-control" name="transmission" required>
+                                                        {% if edit == "" %}
+                                                        <option value="">Select Any One</option>
+                                                        {% else %}
+                                                        <option value="{{edit.transmission}}">{{edit.transmission}}</option>
+                                                        {% endif %}
+                                                        <option value="Automatic">Automatic</option>
+                                                        <option value="Manual">Manual</option>
+                                                        
+                                                </select>                                               
+                                             </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label" for="upassword">KM Driven</label>
+                                                <div class="mb-2">
+                                                    <input type="number" class="form-control" id="upassword" value="{{edit.km_driven}}" name="km_driven" placeholder="KM Driven" required/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label" for="uconfirm_password">No Of Owners</label>
+                                                <div class="mb-2">
+                                                    <select class="js-basic-single form-control" name="no_of_owners" required>
+                                                        
+                                                        {% if edit == "" %}
+                                                        <option value="">Select Any One</option>
+                                                        {% else %}
+                                                        <option value="{{edit.no_of_owners}}">{{edit.no_of_owners}}</option>
+                                                        {% endif %}
+                                                        <option value="1st">1st</option>
+                                                        <option value="2nd">2nd</option>
+                                                        <option value="3rd">3rd</option>
+                                                        <option value="4th">4th</option>
+                                                        <option value="4+">4+</option>
+                                                        
+                                                    </select>                                                
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label" for="uconfirm_password">Description</label>
+                                                <div class="mb-2">
+                                                  <textarea name="Description" id="" style="width: 100%;height: 100px;" required>{{edit.Description}}</textarea>                                          
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label" for="uconfirm_password">Set A Price</label>
+                                                <div class="mb-2">
+                                                    <input type="number" class="form-control" id="upassword" value="{{edit.price}}" name="price" placeholder="Price" required/>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label" for="uconfirm_password">Phone Number</label>
+                                                <div class="mb-2">
+                                                    <input type="number" class="form-control" id="upassword" value="{{edit.seller_contact}}" name="seller_contact" placeholder="Phone Number" required/>
+                                                    <input type="hidden" class="form-control" id="upassword" value="{{edit.seller_name}}" name="seller_name" placeholder="Phone Number" required/>
+                                                    <input type="hidden" class="form-control" id="upassword" value="{{edit.seller_email}}" name="seller_email" placeholder="Phone Number" required/>
+                                                    <input type="hidden" class="form-control" id="upassword" value="{{edit.seller_address}}" name="seller_address" placeholder="Phone Number" required/>
+
+                                                </div>
+                                            </div><br>
+                                            <div class="form-group">
+                                                <label class="control-label" for="uconfirm_password">Video URL</label>
+                                                <input type="url" class="form-control" id="upassword" value="{{edit.url}}" name="url" placeholder="Youtube Video URL" required/>
+
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="control-label" for="uconfirm_password">Upload Photos</label>
+                                                <div class="mb-2">
+                                                    
+                                                
+                                                    <div class="container">
+                                                        <fieldset class="form-group">
+                                                            <a href="javascript:void(0)" onclick="$('#pro-image').click()" class="upload-btn
+                                                        ">Upload Images</a>
+                                                            <input type="file" name="" id="pro-image" name="pro-image" style="display: none;" class="form-control" multiple>
+                                                        </fieldset>
+                                                        {% if edit == "" %}
+                                                        <div class="preview-images-zone">
+
+                                                        </div>
+                                                        <script>
+                                                            $(document).ready(function() {
+                                                    document.getElementById('pro-image').addEventListener('change', readImage, false);
+                                                    
+                                                    $( ".preview-images-zone" ).sortable();
+                                                    
+                                                    $(document).on('click', '.image-cancel', function() {
+                                                        let no = $(this).data('no');
+                                                        $(".preview-image.preview-show-"+no).remove();
+                                                    });
+                                                });
+                                
+                                
+                                
+                                                var num = 0;
+                                                function readImage() {
+                                                    if (window.File && window.FileList && window.FileReader) {
+                                                        var files = event.target.files; //FileList object
+                                                        var output = $(".preview-images-zone");
+                                
+                                                        for (let i = 0; i < files.length; i++) {
+                                                            var file = files[i];
+                                                            if (!file.type.match('image')) continue;
+                                                            
+                                                            var picReader = new FileReader();
+                                                            
+                                                            picReader.addEventListener('load', function (event) {
+                                                                var picFile = event.target;
+                                                                var html =  '<div class="preview-image preview-show-' + num + '">' +
+                                                                            '<div class="image-cancel" data-no="' + num + '">x</div>' +
+                                                                            '<div class="image-zone"><img id="pro-img-' + num + '" src="' + picFile.result + '"></div>' +
+                                                                            '<input type="hidden" name="files'+ i +'" value="' + picFile.result + '">';
+                                
+                                                                output.append(html);
+                                                                num = num + 1;
+                                                            });
+                                
+                                                            picReader.readAsDataURL(file);
+                                                        }
+                                                        $("#pro-image").val('');
+                                                    } else {
+                                                        console.log('Browser not support');
+                                                    }
+                                                }
+                                                        </script>
+                                
+            
+                                                        {% else %}
+                                                        <input type="hidden" value="{{edit.upload_photos|length}}" id="getlen">
+                                                        <input type="hidden" id="getlen" value="{{edit.upload_photos}}">
+                                                            <div class="preview-images-zone">
+                                                                {% for j in edit.upload_photos %}
+                                                                
+                                                                <div class="preview-image preview-show-{{forloop.counter0}}">
+                                                                    <div class="image-cancel" data-no="{{forloop.counter0}}">x</div>
+                                                                    <div class="image-zone"><img id="pro-img-{{forloop.counter0}}" src="{{j}}"></div>
+                                                                    <input type="hidden" name="files{{forloop.counter0}}{{forloop.counter0}}" value="{{j}}">
+                                                            </div>
+                                                        {% endfor %}
+                                                        <script>
+                                                            $(document).ready(function() {
+                                                    document.getElementById('pro-image').addEventListener('change', readImage, false);
+                                                    
+                                                    $( ".preview-images-zone" ).sortable();
+                                                    
+                                                    $(document).on('click', '.image-cancel', function() {
+                                                        let no = $(this).data('no');
+                                                        $(".preview-image.preview-show-"+no).remove();
+                                                    });
+                                                });
+                                
+                                
+                                
+                                                var num = document.getElementById("getlen").value;
+                                                function readImage() {
+                                                    if (window.File && window.FileList && window.FileReader) {
+                                                        var files = event.target.files; //FileList object
+                                                        var output = $(".preview-images-zone");
+                                
+                                                        for (let i = 0; i < files.length; i++) {
+                                                            var file = files[i];
+                                                            if (!file.type.match('image')) continue;
+                                                            
+                                                            var picReader = new FileReader();
+                                                            
+                                                            picReader.addEventListener('load', function (event) {
+                                                                var picFile = event.target;
+                                                                var html =  '<div class="preview-image preview-show-' + num + '">' +
+                                                                            '<div class="image-cancel" data-no="' + num + '">x</div>' +
+                                                                            '<div class="image-zone"><img id="pro-img-' + num + '" src="' + picFile.result + '"></div>' +
+                                                                            '<input type="hidden" name="files'+ i +'" value="' + picFile.result + '">';
+                                
+                                                                output.append(html);
+                                                                num = num + 1;
+                                                            });
+                                
+                                                            picReader.readAsDataURL(file);
+                                                        }
+                                                        $("#pro-image").val('');
+                                                    } else {
+                                                        console.log('Browser not support');
+                                                    }
+                                                }
+                                                        </script>
+                                
+            
+                                                        {% endif %}
+                                                    </div>
+                                                    
+                                                
+                                                
+                                                
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" id="uagree" name="uagree">&nbsp;&nbsp;
+                                                    <label class="form-check-label" for="uagree">
+                                                        Please agree to our policy
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                {% if edit == "" %}
+                                                <button type="submit" class="btn btn-primary" name="add" value="Sign up">Submit</button>
+                                                {% else %}
+                                                <button type="submit" class="btn btn-primary" name="edit" value="Sign up">Update</button>
+                                                {% endif %}
+                                            </div>
+
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <style>
+                        
+                        .upload-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    background-color: #007BFF;
+    border: 1px solid #0056b3;
+    border-radius: 6px;
+    text-decoration: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.upload-btn:hover {
+    background-color: #0056b3;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    color: #fff;
+}
+
+/* Tablet Screens (max-width: 768px) */
+@media (max-width: 768px) {
+    .upload-btn {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
+
+/* Mobile Phones (max-width: 480px) */
+@media (max-width: 480px) {
+    .upload-btn {
+        padding: 6px 12px;
+        font-size: 13px;
+        border-radius: 4px;
+    }
+}
+
+                          /* === Base Styles === */
+.preview-images-zone {
+    width: 100%;
+    border: 1px solid #ddd;
+    min-height: 180px;
+    padding: 5px 5px 0px 5px;
+    position: relative;
+    overflow: auto;
+}
+
+.preview-images-zone > .preview-image:first-child {
+    height: 185px;
+    width: 185px;
+    position: relative;
+    margin-right: 5px;
+}
+
+.preview-images-zone > .preview-image {
+    height: 90px;
+    width: 90px;
+    position: relative;
+    margin-right: 5px;
+    float: left;
+    margin-bottom: 5px;
+}
+
+.preview-images-zone > .preview-image > .image-zone {
+    width: 100%;
+    height: 100%;
+}
+
+.preview-images-zone > .preview-image > .image-zone > img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-images-zone > .preview-image > .tools-edit-image {
+    position: absolute;
+    z-index: 100;
+    color: #fff;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+    display: none;
+}
+
+.preview-images-zone > .preview-image > .image-cancel {
+    font-size: 18px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-weight: bold;
+    margin-right: 10px;
+    cursor: pointer;
+    display: none;
+    z-index: 100;
+}
+
+.preview-image:hover > .image-zone {
+    cursor: move;
+    opacity: 0.5;
+}
+
+.preview-image:hover > .tools-edit-image,
+.preview-image:hover > .image-cancel {
+    display: block;
+}
+
+.ui-sortable-helper {
+    width: 90px !important;
+    height: 90px !important;
+}
+
+.container {
+    padding-top: 50px;
+}
+
+/* === Responsive Media Queries === */
+
+/* Tablets (up to 768px) */
+@media (max-width: 768px) {
+    .preview-images-zone {
+        min-height: 150px;
+        padding: 100px;
+    }
+
+    .preview-images-zone > .preview-image:first-child {
+        height: 140px;
+        width: 140px;
+        margin-right: 5px;
+    }
+
+    .preview-images-zone > .preview-image {
+        height: 70px;
+        width: 70px;
+        margin-right: 4px;
+        margin-bottom: 4px;
+    }
+
+    .preview-images-zone > .preview-image > .tools-edit-image,
+    .preview-images-zone > .preview-image > .image-cancel {
+        font-size: 14px;
+        margin-bottom: 5px;
+        margin-right: 5px;
+    }
+
+    .ui-sortable-helper {
+        width: 70px !important;
+        height: 70px !important;
+    }
+
+    .container {
+        padding-top: 30px;
+    }
+}
+
+/* Mobile phones (up to 480px) */
+@media (max-width: 480px) {
+    
+    .container{
+        margin:0px;
+    }
+    .preview-images-zone {
+        min-height: 120px;
+       width:100%;
+    }
+
+    .preview-images-zone > .preview-image:first-child {
+        height: 120px;
+        width: 120px;
+    }
+
+    .preview-images-zone > .preview-image {
+        height: 60px;
+        width: 60px;
+    }
+
+    .ui-sortable-helper {
+        width: 60px !important;
+        height: 60px !important;
+    }
+
+    .container {
+        padding-top: 20px;
+    }
+}
+
+
+                        </style>
+                        <!-- end Validation row  -->
+
+                                <!-- end page title -->
+                            </div>
+                        </div>
+                        <!-- end row -->
+                        <!-- start car dealer-->
+
+                        <!-- end car dealer-->
+                    </div>
+                    <!-- end container-fluid -->
+                </div>
+                <!-- end app-main -->
+            </div>
+            <!-- end app-container -->
+            <!-- begin footer -->
+            {% include "admin_footer.html" %}
+            <!-- end footer -->
+        </div>
+        <!-- end app-wrap -->
+    </div>
+    <!-- end app -->
+
+    
+</body>
+
+
+<!-- Mirrored from themes.potenzaglobalsolutions.com/html/mentor-bootstrap-4-admin-dashboard-template/index-car-dealer.html by HTTrack Website Copier/3.x [XR&CO'2014], Tue, 28 May 2024 10:37:09 GMT -->
+</html>

@@ -55,3 +55,97 @@ def create_otp_model_first(user, otp) -> None:
         otp_expiry = timezone.localtime(timezone.now()) + timedelta(minutes=10),
         otp_max_try = OTP_MAX_TRY - 1
     )
+
+from django.core.mail import EmailMultiAlternatives
+
+def send_otp_email(role, email, otp):
+    role_display = {
+        "seller": "Seller",
+        "customer": "Customer",
+        "deliveryboy": "Delivery Boy"
+    }
+
+    role_name = role_display.get(role.lower(), "User")
+
+    subject = f"{role_name} Password Reset OTP - Clovigo"
+    from_email = "clovigo0@gmail.com"
+    to = [email]
+
+    text_content = f"""
+Hello {role_name},
+
+Your OTP for password reset is: {otp}
+
+This code will expire in 10 minutes.
+
+Thanks,
+Team Clovigo
+"""
+
+    html_content = f"""
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body {{
+      font-family: Arial, sans-serif;
+      background-color: #f6f9fc;
+      margin: 0;
+      padding: 0;
+    }}
+    .container {{
+      max-width: 600px;
+      margin: auto;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+    }}
+    .header {{
+      background-color: #4a90e2;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px 8px 0 0;
+      text-align: center;
+    }}
+    .otp-box {{
+      background-color: #f1f1f1;
+      padding: 20px;
+      margin: 20px 0;
+      text-align: center;
+      border-radius: 6px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #333;
+      letter-spacing: 2px;
+    }}
+    .footer {{
+      font-size: 12px;
+      color: #888;
+      margin-top: 20px;
+      text-align: center;
+    }}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Clovigo - Password Reset</h2>
+    </div>
+    <p>Hi {role_name},</p>
+    <p>You recently requested to reset your Clovigo password. Use the OTP below to proceed:</p>
+    <div class="otp-box">{otp}</div>
+    <p><strong>This OTP is valid for 10 minutes only.</strong></p>
+    <p>If you didn't request this, you can safely ignore this email.</p>
+    <div class="footer">
+      <p>© {role_name} Services | Clovigo Pvt. Ltd.<br>
+      Powered by Clovigo Team</p>
+    </div>
+  </div>
+</body>
+</html>
+"""
+
+    msg = EmailMultiAlternatives(subject, text_content, from_email, to)
+    msg.attach_alternative(html_content, "text/html")
+    msg.send()

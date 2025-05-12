@@ -40,6 +40,9 @@ urlpatterns = [
     #admin pannels
     path('admin/seller/<int:seller_id>/status/', ApproveSellerView.as_view(), name='approve_seller'),
     path('admin/delivery-boy/<int:delivery_boy_id>/status/', ApproveDeliveryBoyView.as_view(), name='approve_delivery_boy'),
+
+
+
     path('profile/', UserProfileView.as_view(), name='user-profile'),
 
     path('admin/sellers/', SellerListAPI.as_view(), name='admin-sellers'),

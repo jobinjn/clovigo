@@ -11,9 +11,9 @@ SECRET_KEY = env("SECRET_KEY")
 SMS_API_KEY = env("SMS_API_KEY")
 OTP_MAX_TRY = 3
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["clovion.org"]
 # ALLOWED_HOSTS = ["waybic.pro"]
 
 AUTH_USER_MODEL = 'accounts.UserManagementModel'
@@ -138,7 +138,18 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ]
 }
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'clovigo0@gmail.com'  # Your Gmail address
+EMAIL_HOST_PASSWORD = 'ftjd onfg sbix yxzp'  # Paste the 16-char app password here
+
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'CloviGo',
@@ -152,7 +163,9 @@ SPECTACULAR_SETTINGS = {
 #     'REDOC_DIST': 'SIDECAR',
 #     # OTHER SETTINGS
 # }
-
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
 from datetime import timedelta
 
 SIMPLE_JWT = {

@@ -10,13 +10,15 @@ from products.views import (ProductGetView,
                             ListReviewAPIView,
                             ProductGetIdView,
                             UpdateReviewAPIView,
-                            ProductListAPIView)
+                            ProductListAPIView, ProductSearchView)
                             
 
 
 app_name = "products"
 
 urlpatterns = [
+    path('customer/products/search/', ProductSearchView.as_view(),
+         name='customer-product-search'),
     path('products/', ProductListAPIView.as_view(), name='product-list'),
     path ('productcreate/', ProductCreate.as_view(), name="productcreate"),
     path('productview/<str:product_category>/', ProductGetView.as_view(), name="productget"),   #   http://127.0.0.1:8000/products/productview/Food/
