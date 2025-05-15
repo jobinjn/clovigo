@@ -11,9 +11,9 @@ SECRET_KEY = env("SECRET_KEY")
 SMS_API_KEY = env("SMS_API_KEY")
 OTP_MAX_TRY = 3
 
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ["clovion.org"]
+ALLOWED_HOSTS = []
 # ALLOWED_HOSTS = ["waybic.pro"]
 
 AUTH_USER_MODEL = 'accounts.UserManagementModel'
@@ -142,6 +142,9 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ]
 }
+CSRF_COOKIE_NAME = "csrftoken"  # Make sure the cookie name is set correctly
+CSRF_COOKIE_HTTPONLY = False  # This should be False for AJAX requests
+
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'

@@ -7,7 +7,7 @@ from products.models import ProductModel
 
 class OrderModel(models.Model):
     product = models.ForeignKey(ProductModel, on_delete=models.CASCADE)
-    customer = models.ForeignKey(CustomerModel, on_delete=models.CASCADE)
+    customer = models.ForeignKey(CustomerModel, on_delete=models.CASCADE, related_name="orders")
     quantity = models.PositiveIntegerField()
     order_status = models.CharField(max_length=10, choices=ORDER_STATUS_CHOICES)
     total_price=models.DecimalField(default=0,max_digits=10,decimal_places=2)

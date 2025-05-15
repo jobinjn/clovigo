@@ -1,4 +1,6 @@
-from rest_framework.decorators import action
+from django.http import JsonResponse
+from rest_framework.decorators import action, api_view, permission_classes
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -12,7 +14,9 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from .models import ImageModel, ColorModel
 from .serializers import ImageSerializer
 from django.utils.text import slugify
-
+from .globalchoices import (PRODUCTS_CHOICES,
+                                COLOR_CHOICES,
+                                RATING_CHOICES)
 from .serializers import ColorSerializer
 class CatalogHomeView(APIView):
     """

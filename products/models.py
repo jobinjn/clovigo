@@ -38,20 +38,18 @@ class ProductModel(models.Model):
         return round(discounted_price, 2)
 
 
+# models.py
 class ReviewModel(models.Model):
     product = models.ForeignKey(ProductModel, on_delete=models.CASCADE)
     review = models.TextField()
-    rating = models.CharField(max_length=10, choices=RATING_CHOICES)
+    rating = models.IntegerField(choices=[(i, str(i)) for i in range(1, 6)])  # 1 to 5 stars
     customer = models.ForeignKey(CustomerModel, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def _str_(self):
+    def __str__(self):
         return f"{self.customer} - {self.product} ({self.rating})"
+
     @property
-    def calculated_discount_price(self):
-        discount_rate = Decimal(self.discount_percentage) / Decimal('100')
-        discounted_price = self.actual_price * (Decimal('1.0') - discount_rate)
-        return round(discounted_price, 2)
-
-
+    def stars(self):
+        return "★" * self.rating + "☆" * (5 - self.rating)  # Display as stars (★ = filled, ☆ = empty)

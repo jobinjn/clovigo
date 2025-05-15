@@ -7,7 +7,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductModel
         discount_price = serializers.ReadOnlyField()
-        fields = "__all__"
+        fields = ['product_name', 'description', 'product_category', 'color', 'trend_order', 'actual_price', 'discount_price', 'stocks', 'image_id', 'discount_percentage', 'is_return_policy', 'return_before', 'delivered_within']
         read_only_fields = ["id", "discount_price", "created_at", "updated_at"]
     def discount_price(self):
         return round(self.actual_price * (1 - (self.discount_percentage / 100)), 2)
@@ -39,6 +39,4 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise AuthenticationFailed("Invalid or expired token.")
         validated_data["customer"] = customer  
         return super().create(validated_data)
-
-
 

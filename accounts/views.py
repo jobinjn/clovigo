@@ -2,6 +2,9 @@
 Views handling accounts and OTP verifications.
 """
 from django.contrib.auth.hashers import make_password
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+
 
 """eraser-is_otp not added, imagemodel, filemodel"""
 from rest_framework.permissions import IsAuthenticated
@@ -804,3 +807,5 @@ class DeliveryBoyChangePasswordView(APIView):
         request.session.pop("deliveryboy_otp", None)
 
         return Response({"message": "Delivery Boy password changed successfully."})
+
+
