@@ -1,11 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework import status
+from rest_framework import status, generics, permissions
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.contrib.auth.models import AnonymousUser
-from .models import CartModel
-from .serializer import CartSerializer
+from .models import CartModel, FavoriteModel
+from .serializer import CartSerializer, FavoriteSerializer
 from products.models import ProductModel
 from accounts.models import CustomerModel
 
@@ -82,3 +82,20 @@ class CartRemoveView(APIView):
 
         cart_item.delete()
         return Response({"message": "Item removed from cart."}, status=status.HTTP_204_NO_CONTENT)
+
+class FavoriteListCreateAPIView(generics.ListCreateAPIView):
+    serializer_class = FavoriteSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        customer_id = self.request.query_params.get('customer_id')
+        return FavoriteModel.objects.filter(customer_id=customer_id).select_related('product')
+
+    def perform_create(self, serializer):
+        customer = self.request.user.customer  # Assuming a OneToOne link from User → CustomerModel
+        serializer.save(customer=customer)
+
+class FavoriteDeleteAPIView(generics.DestroyAPIView):
+    queryset = FavoriteModel.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = FavoriteSerializer

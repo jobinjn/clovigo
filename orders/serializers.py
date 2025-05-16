@@ -16,10 +16,11 @@ class CustomerSerializer(serializers.ModelSerializer):
         model = CustomerModel
         fields = ['id', 'clo_coin', 'customer_rank', 'user']
 
+
 class OrderSerializer(serializers.ModelSerializer):
     customer = CustomerSerializer()
+    product_name = serializers.CharField(source='product.product_name', read_only=True)
 
     class Meta:
         model = OrderModel
-        fields = ['id', 'quantity', 'total_price', 'order_status', 'created_at', 'updated_at', 'customer']
-
+        fields = ['id', 'product_name', 'customer', 'quantity', 'order_status', 'total_price', 'created_at']

@@ -37,6 +37,14 @@ class ProductModel(models.Model):
         discounted_price = self.actual_price * (Decimal('1.0') - discount_rate)
         return round(discounted_price, 2)
 
+    def save(self, *args, **kwargs):
+        # Automatically calculate and store the discount price before saving
+        if self.discount_percentage > 0:
+            self.discount_price = self.calculated_discount_price
+        else:
+            self.discount_price = None  # or self.actual_price if no discount
+        super().save(*args, **kwargs)
+
 
 # models.py
 class ReviewModel(models.Model):

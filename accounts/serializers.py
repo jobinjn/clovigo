@@ -233,37 +233,96 @@ class LoginResponseSerializer(serializers.Serializer):
     user_id = serializers.IntegerField()
     username = serializers.CharField()
 
-# --- User Profile Serializer ---
+# # --- User Profile Serializer ---
+# class UserProfileSerializer(serializers.ModelSerializer):
+#     seller_profile = serializers.SerializerMethodField()
+#     customer_profile = serializers.SerializerMethodField()
+#     delivery_boy_profile = serializers.SerializerMethodField()
+#
+#     class Meta:
+#         model = User
+#         fields = ['id', 'username', 'email', 'first_name', 'last_name',
+#                   'seller_profile', 'customer_profile', 'delivery_boy_profile']
+#
+#     def get_seller_profile(self, user):
+#         try:
+#             seller = SellerModel.objects.get(user=user)
+#             return SellerSerializer(seller).data
+#         except SellerModel.DoesNotExist:
+#             return None
+#
+#     def get_customer_profile(self, user):
+#         try:
+#             customer = CustomerModel.objects.get(user=user)
+#             return CustomerSerializer(customer).data
+#         except CustomerModel.DoesNotExist:
+#             return None
+#
+#     def get_delivery_boy_profile(self, user):
+#         try:
+#             delivery_boy = DeliveryBoyModel.objects.get(user=user)
+#             return DeliveryBoySerializer(delivery_boy).data
+#         except DeliveryBoyModel.DoesNotExist:
+#             return None
 class UserProfileSerializer(serializers.ModelSerializer):
     seller_profile = serializers.SerializerMethodField()
     customer_profile = serializers.SerializerMethodField()
     delivery_boy_profile = serializers.SerializerMethodField()
 
     class Meta:
-        model = User
+        model = UserManagementModel
         fields = ['id', 'username', 'email', 'first_name', 'last_name',
+                  'profile_pic', 'phone_no', 'address_1', 'address_2',
+                  'landmark', 'city', 'district', 'state', 'pincode',
                   'seller_profile', 'customer_profile', 'delivery_boy_profile']
 
     def get_seller_profile(self, user):
-        try:
-            seller = SellerModel.objects.get(user=user)
-            return SellerSerializer(seller).data
-        except SellerModel.DoesNotExist:
-            return None
+        seller = user.seller_roles.last()  # or .first() depending on logic
+        return SellerSerializer(seller).data if seller else None
 
     def get_customer_profile(self, user):
-        try:
-            customer = CustomerModel.objects.get(user=user)
-            return CustomerSerializer(customer).data
-        except CustomerModel.DoesNotExist:
-            return None
+        customer = user.customer_roles.last()
+        return CustomerSerializer(customer).data if customer else None
 
     def get_delivery_boy_profile(self, user):
-        try:
-            delivery_boy = DeliveryBoyModel.objects.get(user=user)
-            return DeliveryBoySerializer(delivery_boy).data
-        except DeliveryBoyModel.DoesNotExist:
-            return None
+        delivery_boy = user.deliveryboy_roles.last()
+        return DeliveryBoySerializer(delivery_boy).data if delivery_boy else None
+
+    def update(self, instance, validated_data):
+        seller_data = self.initial_data.get('seller_profile')
+        customer_data = self.initial_data.get('customer_profile')
+        delivery_data = self.initial_data.get('delivery_boy_profile')
+
+        # Update user fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+
+        # Handle seller update
+        if seller_data:
+            seller_instance = instance.seller_roles.last()
+            if seller_instance:
+                seller_serializer = SellerSerializer(seller_instance, data=seller_data, partial=True)
+                seller_serializer.is_valid(raise_exception=True)
+                seller_serializer.save()
+
+        # Handle customer update
+        if customer_data:
+            customer_instance = instance.customer_roles.last()
+            if customer_instance:
+                customer_serializer = CustomerSerializer(customer_instance, data=customer_data, partial=True)
+                customer_serializer.is_valid(raise_exception=True)
+                customer_serializer.save()
+
+        # Handle delivery boy update
+        if delivery_data:
+            delivery_instance = instance.deliveryboy_roles.last()
+            if delivery_instance:
+                delivery_serializer = DeliveryBoySerializer(delivery_instance, data=delivery_data, partial=True)
+                delivery_serializer.is_valid(raise_exception=True)
+                delivery_serializer.save()
+
+        return instance
 
     
 class UserManagementSerializer(serializers.ModelSerializer):

@@ -44,6 +44,7 @@ from orders.models import OrderModel
 from orders.serializers import OrderSerializer
 from accounts.utils import send_otp_email
 from datetime import timedelta
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from drf_spectacular.utils import (extend_schema,
                                    OpenApiParameter,
                                    OpenApiExample,
@@ -464,36 +465,33 @@ class ApproveSellerView(APIView):
 
 #         return self.request.user
 
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
+from rest_framework.response import Response
+from rest_framework import status
 
 class UserProfileView(RetrieveUpdateAPIView):
     """
-    A view to retrieve and update the user's profile.
-    Returns a response with user role, user data, and profile information.
+    Retrieve and update the user's profile including role-specific data.
     """
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_object(self):
-        # Returning the current authenticated user
         return self.request.user
 
     def get(self, request, *args, **kwargs):
-        """
-        Retrieves the user profile along with role and additional profile data
-        (seller, customer, delivery boy, etc.) based on the user's role.
-        """
         user = self.get_object()
         serializer = self.get_serializer(user)
-
         return Response(serializer.data)
 
-    def update(self, request, *args, **kwargs):
-        """
-        Updates the user profile. Only fields in the serializer can be updated.
-        """
-        return super().update(request, *args, **kwargs)
-    
+    def put(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
 class SellerListAPI(APIView):
     def get(self, request):
         sellers = SellerModel.objects.select_related('user').all()

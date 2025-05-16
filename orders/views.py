@@ -1,4 +1,5 @@
 from rest_framework import generics, status
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -10,6 +11,9 @@ from django.contrib.auth.models import AnonymousUser
 from .serializers import OrderSerializer
 
 from rest_framework.pagination import PageNumberPagination
+
+from accounts.models import SellerModel
+
 
 class OrderPagination(PageNumberPagination):
     page_size = 10  # This defines the number of orders per page.
@@ -85,3 +89,18 @@ class OrderView(APIView):
         paginator = pagination_class()
         result_page = paginator.paginate_queryset(orders, request)
         return paginator.get_paginated_response(OrderSerializer(result_page, many=True).data)
+
+
+class SellerOrdersAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Assuming SellerModel has OneToOne relation with User
+        try:
+            seller = SellerModel.objects.get(user=request.user)
+        except SellerModel.DoesNotExist:
+            return Response({'error': 'Seller not found for this user'}, status=404)
+
+        orders = OrderModel.objects.filter(product__seller=seller).select_related('product', 'customer')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)

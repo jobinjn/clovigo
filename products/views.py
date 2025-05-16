@@ -14,6 +14,7 @@ from rest_framework.exceptions import PermissionDenied
 from .models import ProductModel  # or your actual Product model
 from core.globalchoices import PRODUCTS_CHOICES, COLOR_CHOICES
 from core.models import ColorModel
+from rest_framework.pagination import PageNumberPagination
 
 from orders.models import OrderModel
 
@@ -89,7 +90,6 @@ class ProductUpdateView(UpdateAPIView):
     queryset = ProductModel.objects.all()
     serializer_class = ProductSerializer
     authentication_classes = [JWTAuthentication]  
-    permission_classes = [IsAuthenticated]  
     lookup_field = "id"
 
     def update(self, request, *args, **kwargs):
@@ -106,9 +106,13 @@ class ProductDeleteView(DestroyAPIView):
     lookup_field = "id"
 
     def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
+        try:
+            instance = self.get_object()
+        except ProductModel.DoesNotExist:
+            return Response({"error": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
 
-        if instance.seller.user != request.user:
+        # Check ownership
+        if instance.seller not in request.user.seller_roles.all():
             return Response({"error": "You can only delete your own products."}, status=status.HTTP_403_FORBIDDEN)
 
         self.perform_destroy(instance)
@@ -330,11 +334,18 @@ class BuyNowAPIView(APIView):
         }, status=201)
 
 
+
+class CustomPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 class SellerProductListView(ListAPIView):
     serializer_class = ProductSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = CustomPagination  # ✅ custom pagination
 
     def get_queryset(self):
         user = self.request.user
-        seller = user.seller_roles.first()  # Use .first() if ForeignKey
+        seller = user.seller_roles.first()
         return ProductModel.objects.filter(seller=seller)
