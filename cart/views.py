@@ -92,7 +92,7 @@ class FavoriteListCreateAPIView(generics.ListCreateAPIView):
         return FavoriteModel.objects.filter(customer_id=customer_id).select_related('product')
 
     def perform_create(self, serializer):
-        customer = self.request.user.customer  # Assuming a OneToOne link from User → CustomerModel
+        customer = self.request.user.customer_roles.first() # Assuming a OneToOne link from User → CustomerModel
         serializer.save(customer=customer)
 
 class FavoriteDeleteAPIView(generics.DestroyAPIView):

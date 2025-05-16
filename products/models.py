@@ -8,12 +8,20 @@ from accounts.models import (SellerModel,
 from decimal import Decimal
 
 
+UNIT_CHOICES = [
+    ('kg', 'Kilogram'),
+    ('g', 'Gram'),
+    ('litre', 'Litre'),
+    ('ml', 'Millilitre'),
+    ('piece', 'Piece'),
+    ('pack', 'Pack'),
+]
 
 class ProductModel(models.Model):
     seller = models.ForeignKey(SellerModel, on_delete=models.CASCADE)
     product_name = models.CharField(max_length=255)
     description = models.TextField()
-    product_category = models.CharField(max_length=50, choices=PRODUCTS_CHOICES,null=True, blank=True)
+    product_category = models.CharField(max_length=50, choices=PRODUCTS_CHOICES, null=True, blank=True)
     color_available = models.ForeignKey(ColorModel, on_delete=models.SET_NULL, null=True, blank=True)
     color = models.CharField(max_length=10, choices=COLOR_CHOICES)
     trend_order = models.IntegerField()
@@ -25,10 +33,11 @@ class ProductModel(models.Model):
     is_return_policy = models.BooleanField(default=False)
     return_before = models.CharField(max_length=255)
     delivered_within = models.CharField(max_length=255)
+    product_unit = models.CharField(max_length=10, choices=UNIT_CHOICES, default='piece')  # ✅ New Field
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def _str_(self):
+    def __str__(self):
         return self.product_name
 
     @property
@@ -38,13 +47,11 @@ class ProductModel(models.Model):
         return round(discounted_price, 2)
 
     def save(self, *args, **kwargs):
-        # Automatically calculate and store the discount price before saving
         if self.discount_percentage > 0:
             self.discount_price = self.calculated_discount_price
         else:
-            self.discount_price = None  # or self.actual_price if no discount
+            self.discount_price = self.actual_price  # or None
         super().save(*args, **kwargs)
-
 
 # models.py
 class ReviewModel(models.Model):
