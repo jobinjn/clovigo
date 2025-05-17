@@ -2,22 +2,19 @@
 Views handling accounts and OTP verifications.
 """
 from django.contrib.auth.hashers import make_password
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-
-
+from rest_framework.decorators import action
+from django.utils.text import slugify
+from .premissions import IsAdminOrReadOnly
+from products.serializers import CategorySerializer
 """eraser-is_otp not added, imagemodel, filemodel"""
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
-from rest_framework import status, generics
-from rest_framework.response import Response
+from rest_framework import status, generics, filters, viewsets
 from rest_framework.generics import CreateAPIView, RetrieveUpdateAPIView
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAdminUser
-from .serializers import CustomerSerializer, SellerSerializer, DeliveryBoySerializer, UserManagementSerializer
-from products.models import ProductModel, ReviewModel
+from products.models import ProductModel, ReviewModel, Category
 from .serializers import ProductSerializer, ReviewSerializer
 from accounts.serializers import (CustomerSignUpSerializer,
                                   OTPValidateSerializer,
@@ -807,3 +804,33 @@ class DeliveryBoyChangePasswordView(APIView):
         return Response({"message": "Delivery Boy password changed successfully."})
 
 
+class CategoryAdminViewSet(viewsets.ModelViewSet):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ['name', 'slug']
+    ordering_fields = ['name', 'sort_order', 'is_featured']
+    ordering = ['sort_order']
+
+    def perform_update(self, serializer):
+        # Update slug if name changed
+        instance = serializer.instance
+        new_name = self.request.data.get('name')
+        if new_name and new_name != instance.name:
+            serializer.save(slug=slugify(new_name))
+        else:
+            serializer.save()
+
+    @action(detail=True, methods=['post'], url_path='deactivate')
+    def deactivate(self, request, pk=None):
+        category = self.get_object()
+        category.is_active = False
+        category.save()
+        return Response({'status': 'category deactivated'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='featured')
+    def featured(self, request):
+        categories = self.get_queryset().filter(is_featured=True, is_active=True)
+        serializer = self.get_serializer(categories, many=True)
+        return Response(serializer.data)

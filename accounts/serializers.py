@@ -16,6 +16,9 @@ from orders.models import OrderModel
 from accounts.models import UserManagementModel
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+
+from products.models import Category
+
 User = get_user_model()
 
 class UserManagementSignUpSerializer(serializers.ModelSerializer):
@@ -393,3 +396,16 @@ class AdminOrderSerializer(serializers.ModelSerializer):
 
 class SellerForgotPasswordSerializer(serializers.Serializer):
     email = serializers.EmailField()
+
+class SubCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug']
+
+class CategorySerializer(serializers.ModelSerializer):
+    subcategories = SubCategorySerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Category
+        fields = '__all__'
+        read_only_fields = ['slug']

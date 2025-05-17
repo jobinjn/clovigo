@@ -11,7 +11,7 @@ from products.views import (ProductGetView,
                             ProductGetIdView,
                             UpdateReviewAPIView,
                             ProductListAPIView, ProductSearchView, ProductChoicesView, BuyNowAPIView, SellerProductListView,
-                            ProductDeleteView)
+                            ProductDeleteView, CategoryListView)
                             
 
 
@@ -35,5 +35,7 @@ urlpatterns = [
     path('reviewlist/<int:product_id>/', ListReviewAPIView.as_view(), name='reviewb list'),
     path('reviewupdate/<int:pk>/',UpdateReviewAPIView.as_view(), name='reviewupdate'),
     path('seller/products/', SellerProductListView.as_view(), name='seller-product-list'),
+
+    path('categories/', CategoryListView.as_view(), name='category-list'),
 
 ]

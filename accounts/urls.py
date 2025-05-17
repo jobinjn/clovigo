@@ -73,4 +73,5 @@ urlpatterns = [
 
     path("deliveryboy/verify-otp/", DeliveryBoyVerifyOTPView.as_view()),
     path("deliveryboy/reset-password/", DeliveryBoyChangePasswordView.as_view()),
+
 ]

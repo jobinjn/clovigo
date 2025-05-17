@@ -5,9 +5,12 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularRedocView, Spec
 from rest_framework.routers import DefaultRouter
 from core.views import ImageViewSet, ColorViewSet
 
+from accounts.views import CategoryAdminViewSet
+
 router = DefaultRouter()
 router.register(r'images', ImageViewSet)
 router.register(r'colors', ColorViewSet, basename='color')
+router.register(r'admin/categories', CategoryAdminViewSet, basename='admin-categories')
 
 
 

@@ -11,12 +11,15 @@ from rest_framework.exceptions import NotFound
 from django.db.models import Q
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.exceptions import PermissionDenied
-from .models import ProductModel  # or your actual Product model
+from .models import ProductModel, Category  # or your actual Product model
 from core.globalchoices import PRODUCTS_CHOICES, COLOR_CHOICES
 from core.models import ColorModel
 from rest_framework.pagination import PageNumberPagination
 
 from orders.models import OrderModel
+
+from .serializers import CategorySerializer
+
 
 class ProductCreate(CreateAPIView):
     serializer_class = ProductSerializer
@@ -51,10 +54,14 @@ class ProductListAPIView(ListAPIView):
 
 class ProductGetView(ListAPIView):
     serializer_class = ProductSerializer
-    lookup_field = "product_category"
+    permission_classes = [IsAuthenticated]
+
     def get_queryset(self):
-        product_category= self.kwargs.get("product_category")  
-        return ProductModel.objects.filter(product_category=product_category)  
+        category = self.kwargs.get("product_category")
+        if category == "all":
+            return ProductModel.objects.all().order_by('-created_at')  # You can sort by latest or trend_order
+        return ProductModel.objects.filter(product_category__slug__iexact=category).order_by('-created_at')
+
 
 # class ProductGetbyIdView(RetrieveAPIView):
 #     serializer_class = ProductSerializer
@@ -349,3 +356,8 @@ class SellerProductListView(ListAPIView):
         user = self.request.user
         seller = user.seller_roles.first()
         return ProductModel.objects.filter(seller=seller)
+
+class CategoryListView(ListAPIView):
+    serializer_class = CategorySerializer
+    permission_classes = [IsAuthenticated]  # change to [AllowAny] if public
+    queryset = Category.objects.filter(is_active=True).order_by('sort_order', 'name')

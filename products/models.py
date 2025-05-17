@@ -1,11 +1,33 @@
-from django.db import models
-from core.globalchoices import (PRODUCTS_CHOICES,
-                                COLOR_CHOICES,
-                                RATING_CHOICES)
+
 from core.models import  ColorModel, ImageModel
 from accounts.models import (SellerModel,
                              CustomerModel)
 from decimal import Decimal
+from django.db import models
+from django.utils.text import slugify
+
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(unique=True, blank=True)
+    parent = models.ForeignKey('self', null=True, blank=True, related_name='subcategories', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='category_images/', null=True, blank=True)
+    icon = models.CharField(max_length=100, null=True, blank=True, help_text="FontAwesome or custom icon class")
+    is_active = models.BooleanField(default=True)
+    is_featured = models.BooleanField(default=False)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name_plural = "Categories"
+        ordering = ['sort_order', 'name']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super(Category, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
 
 
 UNIT_CHOICES = [
@@ -21,9 +43,8 @@ class ProductModel(models.Model):
     seller = models.ForeignKey(SellerModel, on_delete=models.CASCADE)
     product_name = models.CharField(max_length=255)
     description = models.TextField()
-    product_category = models.CharField(max_length=50, choices=PRODUCTS_CHOICES, null=True, blank=True)
+    product_category = models.ForeignKey(Category, null=True, blank=True, on_delete=models.SET_NULL)
     color_available = models.ForeignKey(ColorModel, on_delete=models.SET_NULL, null=True, blank=True)
-    color = models.CharField(max_length=10, choices=COLOR_CHOICES)
     trend_order = models.IntegerField()
     actual_price = models.DecimalField(max_digits=10, decimal_places=2)
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)

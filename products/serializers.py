@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import ProductModel,ReviewModel,CustomerModel
+from .models import ProductModel,ReviewModel, Category
+from accounts.models import CustomerModel
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 
@@ -7,7 +8,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductModel
         discount_price = serializers.ReadOnlyField()
-        fields = ['id','product_name', 'description', 'product_category', 'color', 'trend_order', 'actual_price', 'discount_price', 'stocks', 'image_id', 'discount_percentage', 'is_return_policy', 'return_before', 'delivered_within']
+        fields = ['id','product_name', 'description', 'product_category', 'color_available', 'trend_order', 'actual_price', 'discount_price', 'stocks', 'image_id', 'discount_percentage', 'is_return_policy', 'return_before', 'delivered_within']
         read_only_fields = ["id", "discount_price", "created_at", "updated_at"]
     def discount_price(self):
         return round(self.actual_price * (1 - (self.discount_percentage / 100)), 2)
@@ -40,3 +41,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         validated_data["customer"] = customer  
         return super().create(validated_data)
 
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'slug', 'image', 'icon', 'is_active', 'is_featured', 'sort_order']
